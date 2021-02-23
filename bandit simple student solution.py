@@ -1,69 +1,74 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Tue Feb 23 2021
 
- multiarmed_bandit.py  (author: Anson Wong / git: ankonzoid)
- Adapted from Github
-
+@author: r-wittmann
+@author: Konstantin0694
 """
+
 import numpy as np
 import matplotlib.pyplot as plt
-
 
 # =========================
 # Settings
 # =========================
-bandit_probs = [0.1, 0.5, 0.9]  # bandit probabilities of success
-N_bandits = len(bandit_probs)
-N_experiments = 1000  # number of experiments to perform
-N_episodes = 100 # number of episodes per experiment
-epsilon = 0.1  # probability of random exploration (fraction)
-save_fig = False  # if false -> plot, if true save as file in same directory
-save_format = ".png"  # ".pdf" or ".png"
 
+N_bandits = 10
+N_experiments = 1000  # number of experiments
+N_episodes = 500 # number of episodes per experiment
+tau = 0.5/N_bandits
 
-def get_reward(action, bandit_probs):
+# =========================
+# Methods
+# =========================
+
+# assign random probabilities for all bandits
+# this happens for each experiment
+def assign_bandit_probabilities():
+    bandit_probs = np.zeros(N_bandits)
+    for i in range(N_bandits):
+        bandit_probs[i] = np.random.beta(a=2.0, b=2.0)
+    return bandit_probs
+
+# returns a reward of 1 with the real probability of the respective bandit
+def get_success(action, bandit_probs):
     rand = np.random.random()  # [0.0,1.0)
-    reward = 1 if (rand < bandit_probs[action]) else 0
-    return reward
+    success = 1 if (rand < bandit_probs[action]) else 0
+    return success
 
+# returns 1 or -1 depending on the success of the action
+def get_reward(success):
+    return 1 if (success == 1) else -1
 
+# updates the believes of the agend based on the payout of the current episode
 def update_Q(k, Q, action, reward):
-    # Update Q action-value using:
-    # Q(a) <- Q(a) + 1/(k+1) * (r(a) - Q(a))
     k[action] += 1  # update action counter k -> k+1
-    k[action] = k[action] + 1
-    Q[action] += (1./k[action]) * (reward - Q[action])
+    Q[action] += (1./k[action]) * (reward - Q[action]) # calculate new average payoff
     return (k, Q)
 
+# calculates the knowledge as introduced in the P and L paper (the distance from the reality)
+def calculate_knowledge(current_beliefs, bandit_probs):
+    return 1-sum((current_beliefs - bandit_probs)**2)
 
-def choose_action(Q, epsilon, N_bandits):
-    if epsilon > np.random.random():
-        action = np.random.randint(N_bandits)
+# returns a 1 if the current action differs from the previous (exploration) and a 0 if they are the same (exploitation)
+def calculate_exploration(action_history, action):
+    if (len(action_history) == 0):
+        return 1
     else:
-        action = np.random.choice(np.flatnonzero(Q == Q.max()))
-    # Choose action using an epsilon-greedy agent
-    # np.random.random()  # [0.0,1.0)
-    # np.random.randint() # select a random integer between 0 and input
-    # np.random.choice(np.flatnonzero(Q == Q.max())) # choose randomly among best options
-    return action
+        return 0 if (action_history[-1] == action) else 1
 
-def choose_action_2(Q, tau, N_bandits):
-    """softmax action selection over m alternatives"""
+# selects one bandit depending on the current payout beliefs with a softmax function
+def choose_softmax(Q, tau):
     if tau > 0:
-        # print('Q', Q)
         e = np.exp(np.asarray(Q) / tau)
-        # print('e', e)
         dist = e / np.sum(e)
-        # print('dist', dist)
         roulette = np.random.random()
-        # print('Roulette', roulette)
         cum_prob = 0
         for i in range(N_bandits):
             cum_prob = cum_prob + dist[i]
-            # print('cum_prob', i, cum_prob)
             if cum_prob >= roulette:
                 action = i
-                # print('action', i)
                 break  # stops computing probability of action
                 # selection as soon as cumulative probability exceeds roulette
     else:  # Means that either first did not work or tau = 0
@@ -73,99 +78,80 @@ def choose_action_2(Q, tau, N_bandits):
 # =========================
 # Define an experiment
 # =========================
+    
 def experiment(N_episodes):
-    action_history = []
-    reward_history = []
-    k = np.zeros(N_bandits, dtype=np.int)  # number of times action
-    Q = np.zeros(N_bandits, dtype=np.float)  # estimated value
+    # create empty arrays to append elements to
+    action_history = np.array([])
+    reward_history = np.array([])
+    tau_history = np.array([])
+    knowledge_history = np.array([])
+    exploration_history = np.array([])
+    
+    k = np.zeros(N_bandits, dtype=np.int)  # number of times an action was performed per bandit
+    Q = np.full(N_bandits, 0.5)  # set payout beliefs to initially 0.5
+    
+    # assign random bandit payout probabilities
+    bandit_probs = assign_bandit_probabilities()
+    
     for episode in range(N_episodes):
 
+        # calculate and update tau
+        # tau = tau
+        
         # Choose action from agent (from current Q estimate)
-        action = choose_action_2(Q, epsilon, N_bandits)
+        action = choose_softmax(Q, tau)
+        # calculate success of the action
+        success = get_success(action, bandit_probs)
         # Pick up reward from bandit for chosen action
-        reward = get_reward(action, bandit_probs)
+        reward = get_reward(success)
+        # calculate the current knowledge
+        knowledge = calculate_knowledge(Q, bandit_probs)
+        # determin, if the action was exloration or exploitation
+        exploration = calculate_exploration(action_history,action)
         # Update Q action-value estimates
-        (k, Q) = update_Q(k, Q, action, reward)
-        # Append to history
-        action_history.append(action)
-        reward_history.append(reward)
-    return (np.array(action_history), np.array(reward_history))
+        (k, Q) = update_Q(k, Q, action, success)
+        
+        # Append values to histories
+        action_history = np.append(action_history, action)
+        reward_history = np.append(reward_history, reward)
+        tau_history= np.append(tau_history, tau)
+        knowledge_history = np.append(knowledge_history, knowledge)
+        exploration_history = np.append(exploration_history, exploration)
+    
+    # return all histories
+    return (action_history, reward_history, tau_history, knowledge_history, exploration_history)
 
 # =========================
-#
-# Start multi-armed bandit simulation
-#
+# Loop
 # =========================
 
+print("Running multi-armed bandits with N_bandits = {} and agent tau = {} in {} experiments with {} episodes".format(N_bandits, tau, N_experiments, N_episodes))
+print("")
 
-print("Running multi-armed bandits with N_bandits = {} and agent epsilon = {}".format(N_bandits, epsilon))
-reward_history_avg = np.zeros(N_episodes)  # reward history experiment-averaged
-action_history_sum = np.zeros((N_episodes, N_bandits))  # sum action history
+# create empty matrices to store our history in
+reward_history_matrix   = np.zeros((N_experiments, N_episodes))
+tau_matrix              = np.zeros((N_experiments, N_episodes))
+knowledge_matrix        = np.zeros((N_experiments, N_episodes))
+exploration_matrix      = np.zeros((N_experiments, N_episodes)) 
+
 for i in range(N_experiments):
-    # bandit = Bandit(bandit_probs)  # initialize bandits
-    # agent = Agent(bandit, epsilon)  # initialize agent
-    (action_history, reward_history) = experiment(N_episodes)
-    # perform experiment
-
-    if (i + 1) % (N_experiments / 20) == 0:
+    
+    #perform experiment
+    (action_history, reward_history, tau_history, knowledge_history, exploration_history) = experiment(N_episodes)
+    
+    # print to know at which experiment we currently are
+    if (i + 1) % (N_experiments / 10) == 0:
         print("[Experiment {}/{}]".format(i + 1, N_experiments))
-        print("  N_episodes = {}".format(N_episodes))
-        # print("  bandit choice history = {}".format(action_history + 1))
-        # print("  reward history = {}".format(reward_history))
-        print("  average reward = {}".format(np.sum(reward_history) / len(reward_history)))
         print("")
-    # Sum up experiment reward (later to be divided to represent an average)
-    reward_history_avg += reward_history
-    # Sum up action history
-    for j, (a) in enumerate(action_history):
-        action_history_sum[j][a] += 1
-
-reward_history_avg /= np.float(N_experiments)
-# print("reward history avg = {}".format(reward_history_avg))
+    
+    # append the history arrays to the matrices
+    reward_history_matrix[i,:] = reward_history
+    tau_matrix[i,:] = tau_history
+    knowledge_matrix[i,:] = knowledge_history
+    exploration_matrix[i,:] = exploration_history
 
 # =========================
-# Plot reward history results
+# Plot
 # =========================
-plt.figure(figsize=(8, 6), dpi=100)
-plt.plot(reward_history_avg)
-plt.xlabel("Episode number")
-plt.ylabel("Rewards collected".format(N_experiments))
-plt.title("Bandit reward history averaged over {} experiments (epsilon = {})".format(N_experiments, epsilon))
-ax = plt.gca()
-ax.set_xscale("log", nonposx='clip')
-plt.xlim([1, N_episodes])
-if save_fig:
-    output_file = "MAB_rewards" + save_format
-    plt.savefig(output_file, bbox_inches="tight")
-else:
-    plt.show()
 
-# =========================
-# Plot action history results
-# =========================
-plt.figure(figsize=(8, 6), dpi=100)
-for i in range(N_bandits):
-    action_history_sum_plot = 100 * action_history_sum[:, i] / N_experiments
-    plt.plot(list(np.array(range(len(action_history_sum_plot)))+1),
-             action_history_sum_plot,
-             linewidth=5.0,
-             label="Bandit #{}".format(i+1))
-plt.title("Bandit action history averaged over {} experiments (epsilon = {})".format(N_experiments, epsilon), fontsize=11)
-plt.xlabel("Episode Number", fontsize=11)
-plt.ylabel("Bandit Action Choices (%)", fontsize=11)
-leg = plt.legend(loc='upper left', shadow=True, fontsize=11)
-ax = plt.gca()
-ax.set_xscale("log", nonpositive='clip')
-plt.xlim([1, N_episodes])
-plt.ylim([0, 100])
-plt.xticks(fontsize=11)
-plt.yticks(fontsize=11)
-for legobj in leg.legendHandles:
-    legobj.set_linewidth(16.0)
-if save_fig:
-    output_file = "MAB_actions" + save_format
-    plt.savefig(output_file, bbox_inches="tight")
-else:
-    plt.show()
-
-
+# @Konstantin: hier kannst du dich dann austoben ;)
