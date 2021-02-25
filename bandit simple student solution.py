@@ -6,6 +6,7 @@ Created on Tue Feb 23 2021
 @author: r-wittmann
 @author: Konstantin0694
 """
+# Knowledge berechnet sich noch nicht korrekt!
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,8 +16,8 @@ import matplotlib.pyplot as plt
 # =========================
 
 N_bandits = 10
-N_experiments = 1000  # number of experiments
-N_episodes = 500 # number of episodes per experiment
+N_experiments = 10 # number of experiments
+N_episodes =5 # number of episodes per experiment
 tau = 0.5/N_bandits
 
 # =========================
@@ -74,6 +75,7 @@ def choose_softmax(Q, tau):
     else:  # Means that either first did not work or tau = 0
         action = np.random.choice(np.flatnonzero(Q == Q.max()))
     return action
+
 
 # =========================
 # Define an experiment
@@ -202,9 +204,13 @@ rewards_cum_avg=np.mean(rewards_cum,axis=0)
 rewards_end_avg=rewards_cum_avg[-1]
 
 # Calculate average knowledge at the end of the final period
-knowledge_avg=np.mean(knowledge_matrix,axis=0)
-knowledge_end_avg=knowledge_avg[-1]
-
+print(knowledge_matrix)
+knowledge_cum=np.cumsum(knowledge_matrix, axis=1)
+print(knowledge_cum)
+knowledge_cum_avg=np.mean(knowledge_cum,axis=0)
+print(knowledge_cum_avg)
+knowledge_end_avg=knowledge_cum_avg[-1]
+print(knowledge_end_avg)
 #Calculate average tau for each period
 tau_avg=np.mean(tau_matrix,axis=0)*N_bandits
 tau_end_avg=tau_avg[-1]
@@ -225,7 +231,7 @@ plt.title('Cumulated Performance over time')
 plt.figure("""first figure""")
 
 # Plot Cumulated Knowledge over time
-plt.plot(range(N_episodes),knowledge_avg)
+plt.plot(range(N_episodes),knowledge_cum_avg)
 plt.xlabel('Periods')
 plt.ylabel('Knowledge')
 plt.title('Knowledge over time')
@@ -238,29 +244,13 @@ plt.ylabel('Tau')
 plt.title('Tau over time')
 plt.figure("""third figure""")
 
+print(knowledge_matrix)
+print('---')
+print(knowledge_cum)
 # =========================
 # Replicate figure 1 of Posen, Levinthal 2012
-# Calculate exploration probability
-exploration_prob= np.count_nonzero(exploration_matrix, axis=1, keepdims=True)/N_episodes
-exploration_percent_avg=np.mean(exploration_prob)
-
-print(exploration_percent_avg) #passt!
-print(type(exploration_percent_avg))
-
-# Calculate accumulated asset stock (rewards_cum)
-rewards_cum=np.cumsum(reward_history_matrix,axis=1)
-rewards_end_avg=np.mean(rewards_cum[:,-1],axis=0)
-print(rewards_end_avg) #passt!
-
-# Calculate average knowledge at the end of the final period
-knowledge_end_avg=np.mean(knowledge_matrix[:,-1],axis=0)
-print(knowledge_end_avg) #passt!
-
-
 # Calculate results of figure 1 for 5 different strategies
-N_bandits = 10
-N_experiments = 1000  # number of experiments
-N_episodes = 500
+
 tau_strategy=[0.02,0.25,0.5,0.75,1]
 strategies=len(tau_strategy)
 
@@ -290,7 +280,8 @@ for s in range(strategies):
     
     rewards_cum=np.cumsum(reward_history_matrix,axis=1)
     rewards_end_avg=np.append(rewards_end_avg, np.mean(rewards_cum[:,-1],axis=0))
-    knowledge_end_avg=np.append(knowledge_end_avg, np.mean(knowledge_matrix[:,-1],axis=0))
+    knowledge_cum=np.cumsum(knowledge_matrix, axis=1)
+    knowledge_end_avg=np.append(knowledge_end_avg, np.mean(knowledge_cum[:,-1],axis=0))
 
 print('Tau')
 print(tau_strategy)
@@ -304,38 +295,3 @@ print('---')
 print('Knowledge')
 print(knowledge_end_avg)
 print('---')
-
-# # Calculate results of figure 1 for 5 different strategies
-# tau_strategy=[0.02,0.25,0.5,0.75,1]
-# strategies=len(tau_strategy)
-
-# exploration_prob         = np.zeros(len(tau_strategy))
-# print(exploration_prob )
-# rewards_cum              = np.zeros(len(tau_strategy))
-# rewards_end_avg          = np.zeros(len(tau_strategy))
-# knowledge_end_avg        = np.zeros(len(tau_strategy)) 
-
-# for s in range(strategies):
-#     for i in range(N_experiments):
-#         tau=tau_strategy[s]/N_bandits
-#         #perform experiment
-#         (action_history, reward_history, tau_history, knowledge_history, exploration_history) = experiment_fix_tau(N_episodes)
-        
-#         # print to know at which experiment we currently are
-#         if (i + 1) % (N_experiments / 10) == 0:
-#             print("[Experiment {}/{}]".format(i + 1, N_experiments))
-#             print("")
-        
-#         # append the history arrays to the matrices
-#         reward_history_matrix[i,:] = reward_history
-#         tau_matrix[i,:] = tau_history
-#         knowledge_matrix[i,:] = knowledge_history
-#         exploration_matrix[i,:] = exploration_history
-
-# exploration_prob= np.count_nonzero(exploration_matrix, axis=1, keepdims=True)/N_episodes
-# exploration_percent_avg[s,:]=float(np.mean(exploration_prob))
-
-# rewards_cum=np.cumsum(reward_history_matrix,axis=1)
-# rewards_end_avg[s,:]=float(np.mean(rewards_cum[:,-1],axis=0))
-# knowledge_end_avg[s,:]=float(np.mean(knowledge_matrix[:,-1],axis=0))
-
