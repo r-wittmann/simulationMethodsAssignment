@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 # =========================
 
 N_bandits = 10
-N_experiments = 1000 # number of experiments
+N_experiments = 5000 # number of experiments
 N_episodes =500 # number of episodes per experiment
 tau = 0.5/N_bandits
 
@@ -250,9 +250,7 @@ plt.ylabel('Tau')
 plt.title('Tau over time')
 plt.figure("""third figure""")
 
-print(knowledge_matrix)
-print('---')
-print(knowledge_avg_over_time)
+
 # =========================
 # Replicate figure 1 of Posen, Levinthal 2012
 # Calculate results of figure 1 for 5 different strategies
@@ -260,7 +258,7 @@ print(knowledge_avg_over_time)
 tau_strategy=[0.02,0.25,0.5,0.75,1]
 strategies=len(tau_strategy)
 N_bandits = 10
-N_experiments = 1000 # number of experiments
+N_experiments = 5000 # number of experiments
 N_episodes =500 
 
 exploration_percent_avg  = np.array([])
@@ -268,6 +266,12 @@ rewards_end_avg          = np.array([])
 knowledge_end_avg        = np.array([])
 
 for s in range(strategies):
+    
+    reward_history_matrix   = np.zeros((N_experiments, N_episodes))
+    tau_matrix              = np.zeros((N_experiments, N_episodes))
+    knowledge_matrix        = np.zeros((N_experiments, N_episodes))
+    exploration_matrix      = np.zeros((N_experiments, N_episodes)) 
+    
     for i in range(N_experiments):
         tau=tau_strategy[s]/N_bandits
         #perform experiment
