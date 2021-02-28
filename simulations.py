@@ -11,43 +11,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from bandit_experiment import perform_experiments
 
-# =========================
-# reproduce Posen and Levinthal Paper
-# =========================
-
-def replicate_posen_levinthal(N_bandits = 10, N_experiments = 500, N_episodes = 500):
-    print("Performing a replication of Posen and Levinthal 2012\n")
-    
-    p_l_taus = [0.02, 0.25, 0.5, 0.75, 1]
-    
-    p_l_results = np.matrix([
-            p_l_taus,
-            np.zeros(len(p_l_taus)),
-            np.zeros(len(p_l_taus)),
-            np.zeros(len(p_l_taus))
-        ])
-    
-    for i in range(len(p_l_taus)):
-        (reward_m, tau_m, knowledge_m, exploration_m) = perform_experiments(N_bandits=N_bandits, N_experiments=N_experiments, N_episodes=N_episodes, tau=p_l_taus[i]/N_bandits)
-        
-        exploration_prob= np.count_nonzero(exploration_m, axis=1)/N_episodes
-        p_l_results[1,i] = np.mean(exploration_prob)
-        
-        rewards_cum=np.cumsum(reward_m,axis=1)
-        p_l_results[2,i] = np.mean(rewards_cum[:,-1],axis=0)
-        
-        knowledge_avg_over_time=np.mean(knowledge_m, axis=0)
-        p_l_results[3,i] = knowledge_avg_over_time[-1]
-    
-    print("Here are the results for the replication of Posen and Levinthal 2012:\n")
-    print("Tau:         {}".format(p_l_results[0,:]))
-    print("Exploration: {}".format(p_l_results[1,:].round(5)))
-    print("Performance: {}".format(p_l_results[2,:]))
-    print("Knowledge:   {}".format(p_l_results[3,:].round(5)))
-  
-# uncomment next line to run the experiment    
-# replicate_posen_levinthal(10,5000,500)
-
 
 # =========================
 # old code, don't run!!!
@@ -105,62 +68,3 @@ plt.xlabel('Periods')
 plt.ylabel('Tau')
 plt.title('Tau over time')
 plt.figure("""third figure""")
-
-
-# =========================
-# Replicate figure 1 of Posen, Levinthal 2012
-# Calculate results of figure 1 for 5 different strategies
-
-tau_strategy=[0.02,0.25,0.5,0.75,1]
-strategies=len(tau_strategy)
-N_bandits = 10
-N_experiments = 5000 # number of experiments
-N_episodes =500 
-
-exploration_percent_avg  = np.array([])
-rewards_end_avg          = np.array([])
-knowledge_end_avg        = np.array([])
-
-for s in range(strategies):
-    
-    reward_history_matrix   = np.zeros((N_experiments, N_episodes))
-    tau_matrix              = np.zeros((N_experiments, N_episodes))
-    knowledge_matrix        = np.zeros((N_experiments, N_episodes))
-    exploration_matrix      = np.zeros((N_experiments, N_episodes)) 
-    
-    for i in range(N_experiments):
-        tau=tau_strategy[s]/N_bandits
-        #perform experiment
-        (action_history, reward_history, tau_history, knowledge_history, exploration_history) = experiment_fix_tau(N_episodes)
-        
-        # print to know at which experiment we currently are
-        if (i + 1) % (N_experiments / 10) == 0:
-            print("[Experiment {}/{}]".format(i + 1, N_experiments))
-            print("")
-        
-        # append the history arrays to the matrices
-        reward_history_matrix[i,:] = reward_history
-        tau_matrix[i,:] = tau_history
-        knowledge_matrix[i,:] = knowledge_history
-        exploration_matrix[i,:] = exploration_history
-
-    exploration_prob= np.count_nonzero(exploration_matrix, axis=1)/N_episodes
-    exploration_percent_avg=np.append(exploration_percent_avg, np.mean(exploration_prob))
-    
-    rewards_cum=np.cumsum(reward_history_matrix,axis=1)
-    rewards_end_avg=np.append(rewards_end_avg, np.mean(rewards_cum[:,-1],axis=0))
-    knowledge_avg_over_time=np.mean(knowledge_matrix, axis=0)
-    knowledge_end_avg=np.append(knowledge_end_avg,knowledge_avg_over_time[-1])
-
-print('Tau')
-print(tau_strategy)
-print('---')
-print('Exploration probability')
-print(exploration_percent_avg)
-print('---')
-print('Performance')
-print(rewards_end_avg)
-print('---')
-print('Knowledge')
-print(knowledge_end_avg)
-print('---')
