@@ -65,7 +65,7 @@ def update_tau(tau):
 # Define an experiment
 # =========================
     
-def experiment(N_bandits, N_episodes, tau):
+def experiment(N_bandits, N_episodes, tau, shock_prob, tau_strategy):
     # create empty arrays to append elements to
     action_history = np.array([])
     reward_history = np.array([])
@@ -80,6 +80,10 @@ def experiment(N_bandits, N_episodes, tau):
     bandit_probs = assign_bandit_probabilities(N_bandits)
     
     for episode in range(N_episodes):
+        # check for environmental shock
+        if np.random.random() < shock_prob:
+            bandit_probs = assign_bandit_probabilities(N_bandits)
+        
         # calculate and update tau
         tau = update_tau(tau)
         
@@ -120,7 +124,7 @@ def perform_experiments(N_bandits, N_experiments, N_episodes, tau, shock_prob=0,
     
     for i in range(N_experiments):
         #perform experiment
-        (action_h, reward_h, tau_h, knowledge_h, exploration_h) = experiment(N_bandits, N_episodes, tau)
+        (action_h, reward_h, tau_h, knowledge_h, exploration_h) = experiment(N_bandits, N_episodes, tau, shock_prob, tau_strategy)
         
         # print to know at which experiment we currently are
         if (i + 1) % (N_experiments / 10) == 0:
