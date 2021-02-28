@@ -58,8 +58,15 @@ def choose_softmax(Q, tau, N_bandits):
         action = np.random.choice(np.flatnonzero(Q == Q.max()))
     return action
 
-def update_tau(tau):
-    return tau
+def update_tau(tau, tau_strategy): # needs additional parameters in the future
+    if tau_strategy == "stable":
+        return tau
+    elif tau_strategy == "performance":
+        # not implemented yet
+        return tau
+    else:
+        # defaults to returning tau
+        return tau
 
 # =========================
 # Define an experiment
@@ -85,7 +92,7 @@ def experiment(N_bandits, N_episodes, tau, shock_prob, tau_strategy):
             bandit_probs = assign_bandit_probabilities(N_bandits)
         
         # calculate and update tau
-        tau = update_tau(tau)
+        tau = update_tau(tau, tau_strategy)
         
         # Choose action from agent (from current Q estimate)
         action = choose_softmax(Q, tau, N_bandits)
