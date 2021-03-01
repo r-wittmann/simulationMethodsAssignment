@@ -20,113 +20,97 @@ from bandit_experiment import perform_experiments
 N_bandits=10
 N_experiments=100
 N_episodes=500
-tau_fix=1/N_bandits
-tau_acc=0.5/N_bandits
-shock_prob=0.01
-# --------------------------------
-#Perform experiment for FIXED TAU
-#---------------------------------
+shock_prob=0.00
 
-(reward_m_fix, tau_m_fix, knowledge_m_fix, exploration_m_fix) =perform_experiments(N_bandits, N_experiments, N_episodes, tau_fix, shock_prob, tau_strategy = "stable")
+p_l_taus = [0.02, 0.25, 0.5, 0.75, 1]
+#---------------------------------------------
+#Perform FIXED TAU strategy for different taus    
+#---------------------------------------------
 
-# Calculate exploration probability
-exploration_prob_fix= np.count_nonzero(exploration_m_fix, axis=1)/N_episodes
-exploration_percent_avg_fix=np.mean(exploration_prob_fix)
+p_l_results_fix = np.matrix([
+            p_l_taus,
+            np.zeros(len(p_l_taus)),
+            np.zeros(len(p_l_taus)),
+            np.zeros(len(p_l_taus))
+        ])
+    
+for i in range(len(p_l_taus)):
+    
+    (reward_m_fix, tau_m_fix, knowledge_m_fix, exploration_m_fix) = perform_experiments(N_bandits, N_experiments, N_episodes, tau=p_l_taus[i]/N_bandits, shock_prob=shock_prob, tau_strategy="stable")
+        
+    exploration_prob_fix= np.count_nonzero(exploration_m_fix, axis=1)/N_episodes
+    p_l_results_fix[1,i] = np.mean(exploration_prob_fix)
+        
+    rewards_cum_fix=np.cumsum(reward_m_fix,axis=1)
+    p_l_results_fix[2,i] = np.mean(rewards_cum_fix[:,-1],axis=0)
+        
+    knowledge_avg_over_time_fix=np.mean(knowledge_m_fix, axis=0)
+    p_l_results_fix[3,i] = knowledge_avg_over_time_fix[-1]
+    
 
-# Calculate accumulated asset stock (rewards_cum)
-rewards_cum_fix=np.cumsum(reward_m_fix,axis=1)
-rewards_cum_avg_fix=np.mean(rewards_cum_fix,axis=0)
-rewards_end_avg_fix=rewards_cum_avg_fix[-1]
 
-# Calculate average knowledge at the end of the final period
-knowledge_avg_over_time_fix=np.mean(knowledge_m_fix, axis=0)
-knowledge_end_avg_fix=knowledge_avg_over_time_fix[-1]
+#---------------------------------------------
+#Perform ACCUMULATED RESOURCES strategy for different taus    
+#---------------------------------------------
+p_l_results_acc = np.matrix([
+            p_l_taus,
+            np.zeros(len(p_l_taus)),
+            np.zeros(len(p_l_taus)),
+            np.zeros(len(p_l_taus))
+        ])
+    
+for i in range(len(p_l_taus)):
+    
+    (reward_m_acc, tau_m_acc, knowledge_m_acc, exploration_m_acc) = perform_experiments(N_bandits, N_experiments, N_episodes, tau=p_l_taus[i]/N_bandits, shock_prob=shock_prob, tau_strategy="accumulated resources")
+        
+    exploration_prob_acc= np.count_nonzero(exploration_m_acc, axis=1)/N_episodes
+    p_l_results_acc[1,i] = np.mean(exploration_prob_acc)
+        
+    rewards_cum_acc=np.cumsum(reward_m_acc,axis=1)
+    p_l_results_acc[2,i] = np.mean(rewards_cum_acc[:,-1],axis=0)
+        
+    knowledge_avg_over_time_acc=np.mean(knowledge_m_acc, axis=0)
+    p_l_results_acc[3,i] = knowledge_avg_over_time_acc[-1]
 
-#Calculate average tau for each period
-tau_avg_fix=np.mean(tau_m_fix,axis=0)*N_bandits
-tau_end_avg_fix=tau_avg_fix[-1]
-
-#-----------------------------------------
-# Perform experiment for ACCUMULATED RESOURCES
-#-----------------------------------------
-
-(reward_m_acc, tau_m_acc, knowledge_m_acc, exploration_m_acc) =perform_experiments(N_bandits, N_experiments, N_episodes, tau_acc, shock_prob, tau_strategy= "accumulated resources")
-
-# Calculate exploration probability
-exploration_prob_acc= np.count_nonzero(exploration_m_acc, axis=1)/N_episodes
-exploration_percent_avg_acc=np.mean(exploration_prob_acc)
-
-# Calculate accumulated asset stock (rewards_cum)
-rewards_cum_acc=np.cumsum(reward_m_acc,axis=1)
-rewards_cum_avg_acc=np.mean(rewards_cum_acc,axis=0)
-rewards_end_avg_acc=rewards_cum_avg_acc[-1]
-
-# Calculate average knowledge at the end of the final period
-knowledge_avg_over_time_acc=np.mean(knowledge_m_acc, axis=0)
-knowledge_end_avg_acc=knowledge_avg_over_time_acc[-1]
-
-#Calculate average tau for each period
-tau_avg_acc=np.mean(tau_m_acc,axis=0)*N_bandits
-tau_end_avg_acc=tau_avg_acc[-1]
-
-#--------------------------------------
-#Print main insights FIXED TAU
-print('FIXED TAU Strategy:')
-print('-------------')
-print('Exploration probability = '+str(exploration_percent_avg_fix))
-print('Performance = '+ str(rewards_end_avg_fix))
-print('Knowledge = ' + str(knowledge_end_avg_fix))
-print('Tau = ' + str(tau_end_avg_fix))
-print('--------------')
-
-#Print main insights ACCUMULATED RESOURCES 
-print('ACCUMULATED RESOURCES Strategy:')
-print('-------------')
-print('Exploration probability = '+str(exploration_percent_avg_acc))
-print('Performance = '+ str(rewards_end_avg_acc))
-print('Knowledge = ' + str(knowledge_end_avg_acc))
-print('Tau = ' + str(tau_end_avg_acc))
-print('--------------')
-
-# =========================
-# Plot
-# =========================
-# Plot Cumulated Performance over time
-plt.plot(range(N_episodes), rewards_cum_avg_fix)
-plt.plot(range(N_episodes), rewards_cum_avg_acc)
-plt.xlabel('Periods')
-plt.ylabel('Cumulated Performance')
-plt.ylim(0,N_episodes)
-plt.title('Cumulated Performance over time per strategy')
+print("---------------------------------------------------------------")    
+print("Here are the results for FIXED TAU Strategy for different Taus")
+print("Tau:         {}".format(p_l_results_fix[0,:]))
+print("Exploration: {}".format(p_l_results_fix[1,:].round(5)))
+print("Performance: {}".format(p_l_results_fix[2,:]))
+print("Knowledge:   {}".format(p_l_results_fix[3,:].round(5)))
+print("---------------------------------------------------------------")  
+print("Here are the results for ACCUMULATED RESOURCES Strategy for different Taus")
+print("Tau:         {}".format(p_l_results_acc[0,:]))
+print("Exploration: {}".format(p_l_results_acc[1,:].round(5)))
+print("Performance: {}".format(p_l_results_acc[2,:]))
+print("Knowledge:   {}".format(p_l_results_acc[3,:].round(5)))    
+print("---------------------------------------------------------------")  
+   
+ # plot exploration probability
+plt.plot(p_l_results_fix[0,:].tolist()[0], p_l_results_fix[1,:].tolist()[0])
+plt.plot(p_l_results_fix[0,:].tolist()[0], p_l_results_acc[1,:].tolist()[0])
+plt.xlabel('Tau')
+plt.ylabel('Exploration Probability')
+plt.title('Exporation')
 plt.legend(("Fixed", "Accumulated Resources"))
 plt.figure("""first figure""")
-
-# Plot Knowledge over time
-plt.plot(range(N_episodes),knowledge_avg_over_time_fix)
-plt.plot(range(N_episodes),knowledge_avg_over_time_acc)
-plt.xlabel('Periods')
-plt.ylabel('Knowledge')
-plt.ylim(0,1)
-plt.title('Knowledge over time per strategy')
+    
+    # plot performance
+plt.plot(p_l_results_fix[0,:].tolist()[0], p_l_results_fix[2,:].tolist()[0])
+plt.plot(p_l_results_fix[0,:].tolist()[0], p_l_results_acc[2,:].tolist()[0])
+plt.xlabel('Tau')
+plt.ylabel('Cumulated Performance')
+plt.title('Performance')
 plt.legend(("Fixed", "Accumulated Resources"))
 plt.figure("""second figure""")
-
-#Plot tau over time
-plt.plot(range(N_episodes),tau_avg_fix)
-plt.plot(range(N_episodes),tau_avg_acc)
-plt.xlabel('Periods')
-plt.ylabel('Tau')
-plt.ylim(0,5)
-plt.title('Tau over time per strategy')
+    
+    # plot knowledge
+plt.plot(p_l_results_fix[0,:].tolist()[0], p_l_results_fix[3,:].tolist()[0])
+plt.plot(p_l_results_fix[0,:].tolist()[0], p_l_results_acc[3,:].tolist()[0])
+plt.xlabel('Tau')
+plt.ylabel('Knowledge')
+plt.title('Knowledge')
 plt.legend(("Fixed", "Accumulated Resources"))
 plt.figure("""third figure""")
 
-
-plt.plot(rewards_cum_avg_acc,tau_avg_acc)
-plt.xlabel('Acc Resources')
-plt.ylabel('Tau')
-plt.ylim(0,10)
-plt.title('Tau over time')
-plt.legend(("Fixed", "Accumulated Resources"))
-plt.figure("""third figure""")
 

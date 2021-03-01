@@ -20,9 +20,9 @@ from bandit_experiment import perform_experiments
 N_bandits=10
 N_experiments=100
 N_episodes=500
-tau_fix=1/N_bandits
+tau_fix=0.5/N_bandits
 tau_acc=0.5/N_bandits
-shock_prob=0.01
+shock_prob=0.0
 # --------------------------------
 #Perform experiment for FIXED TAU
 #---------------------------------
