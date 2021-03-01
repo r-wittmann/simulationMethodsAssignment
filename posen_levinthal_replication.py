@@ -69,6 +69,6 @@ def replicate_posen_levinthal(N_bandits = 10, N_experiments = 500, N_episodes = 
 # replicate_posen_levinthal(10,500,500)
 
 # TO DO
-# make figures look pretty!!
+# make figures look pretty!! -> In Excel reinpacken!
 
 
