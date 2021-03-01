@@ -153,7 +153,7 @@ def perform_experiments(N_bandits, N_experiments, N_episodes, tau, shock_prob=0,
 
 #Input parameters to perform experiment
 N_bandits=10
-N_experiments=1000
+N_experiments=100
 N_episodes=500
 tau=0.5/N_bandits
 shock_prob=0
