@@ -66,4 +66,9 @@ def replicate_posen_levinthal(N_bandits = 10, N_experiments = 500, N_episodes = 
     plt.figure("""third figure""")
   
 # uncomment next line to run the experiment    
-# replicate_posen_levinthal(10,5000,500)
+# replicate_posen_levinthal(10,500,500)
+
+# TO DO
+# make figures look pretty!!
+
+
