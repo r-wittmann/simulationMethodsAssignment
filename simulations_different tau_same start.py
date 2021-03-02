@@ -18,7 +18,7 @@ from bandit_experiment import perform_experiments
 
 #Input parameters to perform experiment
 N_bandits=10
-N_experiments=100
+N_experiments=1000
 N_episodes=500
 shock_prob=0.00
 
@@ -50,7 +50,7 @@ for i in range(len(p_l_taus)):
 
 
 #---------------------------------------------
-#Perform ACCUMULATED RESOURCES for Tau always starting at 0.5!
+#Perform ACCUMULATED RESOURCES strategy for different taus    
 #---------------------------------------------
 p_l_results_acc = np.matrix([
             p_l_taus,
@@ -58,10 +58,10 @@ p_l_results_acc = np.matrix([
             np.zeros(len(p_l_taus)),
             np.zeros(len(p_l_taus))
         ])
- 
-(reward_m_acc, tau_m_acc, knowledge_m_acc, exploration_m_acc) = perform_experiments(N_bandits, N_experiments, N_episodes, tau=0.5/N_bandits, shock_prob=shock_prob, tau_strategy="accumulated resources")
-   
+    
 for i in range(len(p_l_taus)):
+    
+    (reward_m_acc, tau_m_acc, knowledge_m_acc, exploration_m_acc) = perform_experiments(N_bandits, N_experiments, N_episodes, tau=p_l_taus[i]/N_bandits, shock_prob=shock_prob, tau_strategy="accumulated resources")
         
     exploration_prob_acc= np.count_nonzero(exploration_m_acc, axis=1)/N_episodes
     p_l_results_acc[1,i] = np.mean(exploration_prob_acc)
@@ -91,7 +91,7 @@ plt.plot(p_l_results_fix[0,:].tolist()[0], p_l_results_fix[1,:].tolist()[0])
 plt.plot(p_l_results_fix[0,:].tolist()[0], p_l_results_acc[1,:].tolist()[0])
 plt.xlabel('Tau')
 plt.ylabel('Exploration Probability')
-plt.title('Exporation')
+plt.title('Exploration')
 plt.legend(("Fixed", "Accumulated Resources"))
 plt.figure("""first figure""")
     
