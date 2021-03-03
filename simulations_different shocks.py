@@ -18,25 +18,24 @@ from bandit_experiment import perform_experiments
 
 #Input parameters to perform experiment
 N_bandits=10
-N_experiments=25000
+N_experiments=500
 N_episodes=500
-shock_prob=[0.0, 0.005, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32]
-
-tau = 0.5
+shock_prob_sim=[0.0, 0.005, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32]
+tau_sim = 0.5
 #---------------------------------------------
 #Perform FIXED TAU strategy for different taus    
 #---------------------------------------------
 
 p_l_results_fix = np.matrix([
-            shock_prob,
-            np.zeros(len(shock_prob)),
-            np.zeros(len(shock_prob)),
-            np.zeros(len(shock_prob))
+            shock_prob_sim,
+            np.zeros(len(shock_prob_sim)),
+            np.zeros(len(shock_prob_sim)),
+            np.zeros(len(shock_prob_sim))
         ])
     
-for i in range(len(shock_prob)):
+for i in range(len(shock_prob_sim)):
     
-    (reward_m_fix, tau_m_fix, knowledge_m_fix, exploration_m_fix) = perform_experiments(N_bandits, N_experiments, N_episodes, tau, shock_prob=shock_prob[i], tau_strategy="stable")
+    (reward_m_fix, tau_m_fix, knowledge_m_fix, exploration_m_fix) = perform_experiments(N_bandits, N_experiments, N_episodes, tau=tau_sim/N_bandits, shock_prob=shock_prob_sim[i], tau_strategy="stable")
         
     exploration_prob_fix= np.count_nonzero(exploration_m_fix, axis=1)/N_episodes
     p_l_results_fix[1,i] = np.mean(exploration_prob_fix)
@@ -53,15 +52,15 @@ for i in range(len(shock_prob)):
 #Perform ACCUMULATED RESOURCES strategy for different taus    
 #---------------------------------------------
 p_l_results_acc = np.matrix([
-            shock_prob,
-            np.zeros(len(shock_prob)),
-            np.zeros(len(shock_prob)),
-            np.zeros(len(shock_prob))
+            shock_prob_sim,
+            np.zeros(len(shock_prob_sim)),
+            np.zeros(len(shock_prob_sim)),
+            np.zeros(len(shock_prob_sim))
         ])
     
-for i in range(len(shock_prob)):
+for i in range(len(shock_prob_sim)):
     
-    (reward_m_acc, tau_m_acc, knowledge_m_acc, exploration_m_acc) = perform_experiments(N_bandits, N_experiments, N_episodes, tau, shock_prob=shock_prob[i], tau_strategy="accumulated resources")
+    (reward_m_acc, tau_m_acc, knowledge_m_acc, exploration_m_acc) = perform_experiments(N_bandits, N_experiments, N_episodes, tau=tau_sim/N_bandits, shock_prob=shock_prob_sim[i], tau_strategy="accumulated resources")
         
     exploration_prob_acc= np.count_nonzero(exploration_m_acc, axis=1)/N_episodes
     p_l_results_acc[1,i] = np.mean(exploration_prob_acc)

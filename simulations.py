@@ -18,10 +18,10 @@ from bandit_experiment import perform_experiments
 
 #Input parameters to perform experiment
 N_bandits=10
-N_experiments=100
+N_experiments=25000
 N_episodes=500
-tau_fix=0.5/N_bandits
-tau_acc=0.5/N_bandits
+tau_fix=0.1/N_bandits
+tau_acc=0.1/N_bandits
 shock_prob=0.0
 # --------------------------------
 #Perform experiment for FIXED TAU
@@ -125,7 +125,7 @@ plt.figure("""third figure""")
 plt.plot(rewards_cum_avg_acc,tau_avg_acc)
 plt.xlabel('Acc Resources')
 plt.ylabel('Tau')
-plt.ylim(0,10)
+plt.ylim(0,5)
 plt.title('Tau over time')
 plt.legend(("Fixed", "Accumulated Resources"))
 plt.figure("""third figure""")
