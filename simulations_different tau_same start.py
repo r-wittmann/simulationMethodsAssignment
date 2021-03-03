@@ -18,7 +18,7 @@ from bandit_experiment import perform_experiments
 
 #Input parameters to perform experiment
 N_bandits=10
-N_experiments=1000
+N_experiments=25000
 N_episodes=500
 shock_prob=0.00
 
@@ -50,7 +50,7 @@ for i in range(len(p_l_taus)):
 
 
 #---------------------------------------------
-#Perform ACCUMULATED RESOURCES strategy for different taus    
+#Perform ACCUMULATED RESOURCES strategy for different taus at t=0  
 #---------------------------------------------
 p_l_results_acc = np.matrix([
             p_l_taus,
@@ -79,7 +79,7 @@ print("Exploration: {}".format(p_l_results_fix[1,:].round(5)))
 print("Performance: {}".format(p_l_results_fix[2,:]))
 print("Knowledge:   {}".format(p_l_results_fix[3,:].round(5)))
 print("---------------------------------------------------------------")  
-print("Here are the results for ACCUMULATED RESOURCES Strategy for different Taus")
+print("Here are the results for ACCUMULATED RESOURCES Strategy for different Taus at t=0")
 print("Tau:         {}".format(p_l_results_acc[0,:]))
 print("Exploration: {}".format(p_l_results_acc[1,:].round(5)))
 print("Performance: {}".format(p_l_results_acc[2,:]))
