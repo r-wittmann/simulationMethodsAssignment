@@ -18,7 +18,7 @@ from bandit_experiment import perform_experiments
 
 #Input parameters to perform experiment
 N_bandits=10
-N_experiments=10
+N_experiments=25
 N_episodes=500
 shock_prob_1=0.00
 
@@ -89,11 +89,9 @@ print("---------------------------------------------------------------")
  # plot exploration probability
 plt.plot(p_l_results_fix_1[0,:].tolist()[0], p_l_results_fix_1[1,:].tolist()[0])
 plt.plot(p_l_results_fix_1[0,:].tolist()[0], p_l_results_acc_1[1,:].tolist()[0])
-plt.xlim(0)
 plt.xlabel('Tau')
 plt.ylabel('Exploration Probability')
 plt.title('Exploration')
-plt.xlim(0)
 plt.legend(("Fixed", "Accumulated Resources"))
 plt.figure("""first figure""")
     
@@ -103,7 +101,6 @@ plt.plot(p_l_results_fix_1[0,:].tolist()[0], p_l_results_acc_1[2,:].tolist()[0])
 plt.xlabel('Tau')
 plt.ylabel('Cumulated Performance')
 plt.title('Performance')
-plt.xlim(0)
 plt.legend(("Fixed", "Accumulated Resources"))
 plt.figure("""second figure""")
     
@@ -113,7 +110,6 @@ plt.plot(p_l_results_fix_1[0,:].tolist()[0], p_l_results_acc_1[3,:].tolist()[0])
 plt.xlabel('Tau')
 plt.ylabel('Knowledge')
 plt.title('Knowledge')
-plt.xlim(0)
 plt.legend(("Fixed", "Accumulated Resources"))
 plt.figure("""third figure""")
 
