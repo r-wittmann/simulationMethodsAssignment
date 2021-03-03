@@ -67,7 +67,7 @@ def update_Q(k, Q, action, reward):
 #    Q: current believes of payout probabilities, list of floats
 #    bandit_probs: list of payout probabilities for each bandit, list of floats
 def calculate_knowledge(Q, bandit_probs):
-    return 1-sum((current_beliefs - bandit_probs)**2)
+    return 1-sum((Q - bandit_probs)**2)
 
 # returns a 1 if the current action differs from the previous (exploration) and
 # a 0 if they are the same (exploitation)
