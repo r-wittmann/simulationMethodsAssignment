@@ -7,16 +7,22 @@ Created on Tue Feb 23 2021
 @author: Konstantin0694
 """
 
+"""
+this simulation runs experiments in a stable environment for both the stable
+tau-strategy, as well as the accumulated resource strategy. It plots the results
+for comparison.
+All relevant parameters which are used for later, are suffixed with _2
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from bandit_experiment import perform_experiments
-
 
 # =========================
 # Perform an experiment
 # =========================
 
-#Input parameters to perform experiment
+# Set parameters to perform both experiment
 N_bandits=10
 N_experiments=10
 N_episodes=500
