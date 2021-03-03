@@ -3,46 +3,90 @@
 """
 Created on Sat Feb 27 20:38:47 2021
 
-@author: rainer-wittmann
+@author: r-wittmann
+@author: Konstantin0694
 """
 
+"""
+This script contains the code for a repeted experiments of the multi-armed
+bandit model.
+
+First, all methods are defined that are later used in the experiment loop
+itself, including softmax choosing method and the method to update ones 
+believs.
+
+One experiment is defined as a game of N_episodes with certain pre-set 
+characteristics (e.g. number of episodes, tau and shock probability) 
+
+This script is designed to be called from either the console or other files, 
+methods and parameters are commented below.
+"""
 
 import numpy as np
-import matplotlib.pyplot as plt
+
 # =========================
 # Methods
 # =========================
 
-# assign random probabilities for all bandits
+# returns a list of payout probabilities for each bandit. Probabilities are 
+# drawn from a random beta distribution with a = b = 2
+# parameters:
+#    N_bandits: number of bandits, int
 def assign_bandit_probabilities(N_bandits):
     return np.random.beta(2.0, 2.0, N_bandits)
 
-# returns a reward of 1 with the real probability of the respective bandit
+# returns success (1) or failure (0) based on the real payout probability
+# of the respective bandit
+# parameters:
+#    action: the previously chosen action, int between 0 and len(bandit_probs)
+#    bandit_probs: list of payout probabilities for each bandit, list of floats
 def get_success(action, bandit_probs):
     return 1 if (np.random.random() < bandit_probs[action]) else 0
 
-# returns 1 or -1 depending on the success of the action
+# returns 1 or -1 depending on the success of the performed action
+# parameters:
+#    success: wheter the action was successful or not, 0 or 1
 def get_reward(success):
     return 1 if (success == 1) else -1
 
 # updates the believes of the agend based on the payout of the current episode
+# parameters:
+#    k: number of actions previously performed, list of ints
+#    Q: current believes of payout probabilities, list of floats
+#    action: the previously chosen action, int
+#    reward: the payout of the previous action, -1 or 1
 def update_Q(k, Q, action, reward):
-    k[action] += 1  # update action counter k -> k+1
+    k[action] += 1  # update action counter
     Q[action] += (1./(k[action]+1)) * (reward - Q[action]) # calculate new average payoff
     return (k, Q)
 
-# calculates the knowledge as introduced in the P and L paper (the distance from the reality)
-def calculate_knowledge(current_beliefs, bandit_probs):
+# calculates the knowledge as introduced in the Posen and Levinthal paper,
+# which can be understood as the distance from the reality (sum of squared 
+# errors)
+# parameters:
+#    Q: current believes of payout probabilities, list of floats
+#    bandit_probs: list of payout probabilities for each bandit, list of floats
+def calculate_knowledge(Q, bandit_probs):
     return 1-sum((current_beliefs - bandit_probs)**2)
 
-# returns a 1 if the current action differs from the previous (exploration) and a 0 if they are the same (exploitation)
+# returns a 1 if the current action differs from the previous (exploration) and
+# a 0 if they are the same (exploitation)
+# this is later used to calculate the exploration probability
+# parameters:
+#    action_history: list of actions performed, list of ints
+#    action: the previously chosen action, int
 def calculate_exploration(action_history, action):
-    if (len(action_history) == 0):
+    if (len(action_history) == 0): # this is only true in the first episode
         return 1
     else:
         return 0 if (action_history[-1] == action) else 1
 
-# selects one bandit depending on the current payout beliefs with a softmax function
+# selects one bandit to operate, depending on the current payout beliefs and 
+# tau with a softmax function
+# parameters:
+#    Q: current believes of payout probabilities, list of floats
+#    tau: the tau parameter, float
+#    N_bandits: number of bandits, int
 def choose_softmax(Q, tau, N_bandits):
     if tau > 0:
         e = np.exp(np.asarray(Q) / tau)
@@ -58,16 +102,20 @@ def choose_softmax(Q, tau, N_bandits):
         action = np.random.choice(np.flatnonzero(Q == Q.max()))
     return action
 
-def update_tau(tau_0, tau_strategy,N_episodes, reward_history): # needs additional parameters in the future
+# this method calculates the tau to be used in the choose softmax method
+# tau-strategies available: "stable" and "accumulated resources"
+# if "accumulated resources is selected, tau is recalculated based on the
+# current resources
+# parameters:
+#    tau_0: the initial tau parameter, float
+#    tau_strategy: the chosen strategy to update tau, string
+#    N_episodes: number of episodes per experiment, int
+#    reward_history: history of payouts from previous episods, list of -1 and 1
+def update_tau(tau_0, tau_strategy, N_episodes, reward_history):
     if tau_strategy == "stable":
         return tau_0
     elif tau_strategy == "accumulated resources":
-        # tau= tau_0+(1/N_episodes)*(np.sum(reward_history))
-        tau= tau_0+(1/(N_episodes)**2)*(np.sum(reward_history)**2)
-        return tau
-    elif tau_strategy == "aspiration level":
-        # not implemented yet
-        return tau_0
+        return tau_0+(1/(N_episodes)**2)*(np.sum(reward_history)**2)
     else:
         # defaults to returning tau
         return tau_0
@@ -75,7 +123,14 @@ def update_tau(tau_0, tau_strategy,N_episodes, reward_history): # needs addition
 # =========================
 # Define an experiment
 # =========================
-    
+
+# an experiment is a repitition of actions for N_episods
+# parameters:
+#    N_bandits: the number of bandits, int
+#    N_episodes: number of episodes per experiment, int
+#    tau: the tau parameter, float
+#    shock_prob: probability of a shock to the environment, float
+#    tau_strategy: the chosen strategy to update tau, string
 def experiment(N_bandits, N_episodes, tau, shock_prob, tau_strategy):
     # create empty arrays to append elements to
     action_history = np.array([])
@@ -86,21 +141,20 @@ def experiment(N_bandits, N_episodes, tau, shock_prob, tau_strategy):
     tau_0=tau
     
     k = np.zeros(N_bandits, dtype=np.int)  # number of times an action was performed per bandit
-    Q = np.full(N_bandits, 0.5)  # set payout beliefs to initially 0.5
+    Q = np.full(N_bandits, 0.5)  # set payout beliefs to 0.5 initially
     
     # assign random bandit payout probabilities
     bandit_probs = assign_bandit_probabilities(N_bandits)
     
     for episode in range(N_episodes):
         # check for environmental shock
-        if np.random.random() < shock_prob:
-            if np.random.random()<0.5:
-                bandit_probs = assign_bandit_probabilities(N_bandits)
+        if np.random.random() < shock_prob and np.random.random()<0.5:
+            bandit_probs = assign_bandit_probabilities(N_bandits)
         
         # calculate and update tau
         tau = update_tau(tau_0, tau_strategy, N_episodes, reward_history)
         
-        # Choose action from agent (from current Q estimate)
+        # Choose action from agent (based on current believes)
         action = choose_softmax(Q, tau, N_bandits)
         # calculate success of the action
         success = get_success(action, bandit_probs)
@@ -124,6 +178,15 @@ def experiment(N_bandits, N_episodes, tau, shock_prob, tau_strategy):
     # return all histories
     return (action_history, reward_history, tau_history, knowledge_history, exploration_history)
 
+
+# an experiment is a repitition of actions for N_episods
+# parameters:
+#    N_bandits: the number of bandits, int
+#    N_experiments: the number of experiments, int
+#    N_episodes: number of episodes per experiment, int
+#    tau: the tau parameter, float
+#    shock_prob: probability of a shock to the environment, float, default = 0
+#    tau_strategy: the chosen strategy to update tau, string, default = "stable"
 def perform_experiments(N_bandits, N_experiments, N_episodes, tau, shock_prob=0, tau_strategy="stable"):
     print("Running multi-armed bandits with {} bandits in {} experiments with {} episodes.".format(N_bandits, N_experiments, N_episodes))
     print("Environment shock probability is set to {}, tau to {} and tau strategy is \"{}\".".format(shock_prob, tau, tau_strategy))
@@ -150,4 +213,5 @@ def perform_experiments(N_bandits, N_experiments, N_episodes, tau, shock_prob=0,
         knowledge_m[i,:] = knowledge_h
         exploration_m[i,:] = exploration_h
     
+    # return matricies
     return (reward_m, tau_m, knowledge_m, exploration_m)
