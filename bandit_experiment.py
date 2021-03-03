@@ -94,7 +94,8 @@ def experiment(N_bandits, N_episodes, tau, shock_prob, tau_strategy):
     for episode in range(N_episodes):
         # check for environmental shock
         if np.random.random() < shock_prob:
-            bandit_probs = assign_bandit_probabilities(N_bandits)
+            if np.random.random()<0.5:
+                bandit_probs = assign_bandit_probabilities(N_bandits)
         
         # calculate and update tau
         tau = update_tau(tau_0, tau_strategy, N_episodes, reward_history)
