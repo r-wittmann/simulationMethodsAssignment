@@ -7,6 +7,14 @@ Created on Tue Feb 23 2021
 @author: Konstantin0694
 """
 
+"""
+this simulation runs experiments in a stable environment for both the stable
+tau-strategy, as well as the accumulated resource strategy. It plots the results
+for comparison. This is for the peplication of the results of Posen and 
+Levinthal 2012
+All relevant parameters which are used for later, are suffixed with _1
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from bandit_experiment import perform_experiments
@@ -16,7 +24,7 @@ from bandit_experiment import perform_experiments
 # Perform an experiment
 # =========================
 
-#Input parameters to perform experiment
+# Input parameters to perform experiment
 N_bandits=10
 N_experiments=25
 N_episodes=500
@@ -24,7 +32,7 @@ shock_prob_1=0.00
 
 p_l_taus_1 = [0.02, 0.25, 0.5, 0.75, 1]
 #---------------------------------------------
-#Perform FIXED TAU strategy for different taus    
+# Perform FIXED TAU strategy for different taus    
 #---------------------------------------------
 
 p_l_results_fix_1 = np.matrix([
@@ -50,7 +58,7 @@ for i in range(len(p_l_taus_1)):
 
 
 #---------------------------------------------
-#Perform ACCUMULATED RESOURCES strategy for different taus at t=0  
+# Perform ACCUMULATED RESOURCES strategy for different taus at t=0  
 #---------------------------------------------
 p_l_results_acc_1 = np.matrix([
             p_l_taus_1,
@@ -86,7 +94,7 @@ print("Performance: {}".format(p_l_results_acc_1[2,:]))
 print("Knowledge:   {}".format(p_l_results_acc_1[3,:].round(5)))    
 print("---------------------------------------------------------------")  
    
- # plot exploration probability
+# plot exploration probability
 plt.plot(p_l_results_fix_1[0,:].tolist()[0], p_l_results_fix_1[1,:].tolist()[0])
 plt.plot(p_l_results_fix_1[0,:].tolist()[0], p_l_results_acc_1[1,:].tolist()[0])
 plt.xlabel('Tau')
@@ -95,7 +103,7 @@ plt.title('Exploration')
 plt.legend(("Fixed", "Accumulated Resources"))
 plt.figure("""first figure""")
     
-    # plot performance
+# plot performance
 plt.plot(p_l_results_fix_1[0,:].tolist()[0], p_l_results_fix_1[2,:].tolist()[0])
 plt.plot(p_l_results_fix_1[0,:].tolist()[0], p_l_results_acc_1[2,:].tolist()[0])
 plt.xlabel('Tau')
@@ -104,7 +112,7 @@ plt.title('Performance')
 plt.legend(("Fixed", "Accumulated Resources"))
 plt.figure("""second figure""")
     
-    # plot knowledge
+# plot knowledge
 plt.plot(p_l_results_fix_1[0,:].tolist()[0], p_l_results_fix_1[3,:].tolist()[0])
 plt.plot(p_l_results_fix_1[0,:].tolist()[0], p_l_results_acc_1[3,:].tolist()[0])
 plt.xlabel('Tau')
