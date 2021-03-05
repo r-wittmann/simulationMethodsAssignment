@@ -26,7 +26,7 @@ from bandit_experiment import perform_experiments
 # Input parameters to perform experiment
 N_bandits=10
 N_experiments=5
-N_episodes=500
+N_periods=500
 # shock_prob_3=[0.0, 0.02, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20, 0.22, 0.24, 0.26, 0.28, 0.30, 0.32]
 shock_prob_3=[0.0, 0.02, 0.04, 0.06, 0.08, 0.10]
 tau_3 = 0.5
@@ -43,9 +43,9 @@ p_l_results_fix_3 = np.matrix([
     
 for i in range(len(shock_prob_3)):
     
-    (reward_m_fix_3, tau_m_fix_3, knowledge_m_fix_3, exploration_m_fix_3) = perform_experiments(N_bandits, N_experiments, N_episodes, tau=tau_3/N_bandits, shock_prob=shock_prob_3[i], tau_strategy="stable")
+    (reward_m_fix_3, tau_m_fix_3, knowledge_m_fix_3, exploration_m_fix_3) = perform_experiments(N_bandits, N_experiments, N_periods, tau=tau_3/N_bandits, shock_prob=shock_prob_3[i], tau_strategy="stable")
         
-    exploration_prob_fix_3= np.count_nonzero(exploration_m_fix_3, axis=1)/N_episodes
+    exploration_prob_fix_3= np.count_nonzero(exploration_m_fix_3, axis=1)/N_periods
     p_l_results_fix_3[1,i] = np.mean(exploration_prob_fix_3)
         
     rewards_cum_fix_3=np.cumsum(reward_m_fix_3,axis=1)
@@ -68,9 +68,9 @@ p_l_results_acc_3 = np.matrix([
     
 for i in range(len(shock_prob_3)):
     
-    (reward_m_acc_3, tau_m_acc_3, knowledge_m_acc_3, exploration_m_acc_3) = perform_experiments(N_bandits, N_experiments, N_episodes, tau=tau_3/N_bandits, shock_prob=shock_prob_3[i], tau_strategy="accumulated resources")
+    (reward_m_acc_3, tau_m_acc_3, knowledge_m_acc_3, exploration_m_acc_3) = perform_experiments(N_bandits, N_experiments, N_periods, tau=tau_3/N_bandits, shock_prob=shock_prob_3[i], tau_strategy="accumulated resources")
         
-    exploration_prob_acc_3= np.count_nonzero(exploration_m_acc_3, axis=1)/N_episodes
+    exploration_prob_acc_3= np.count_nonzero(exploration_m_acc_3, axis=1)/N_periods
     p_l_results_acc_3[1,i] = np.mean(exploration_prob_acc_3)
         
     rewards_cum_acc_3=np.cumsum(reward_m_acc_3,axis=1)

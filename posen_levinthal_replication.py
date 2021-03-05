@@ -14,7 +14,7 @@ from bandit_experiment import perform_experiments
 # reproduce Posen and Levinthal Paper
 # =========================
 
-def replicate_posen_levinthal(N_bandits = 10, N_experiments = 500, N_episodes = 500):
+def replicate_posen_levinthal(N_bandits = 10, N_experiments = 500, N_periods = 500):
     print("Performing a replication of Posen and Levinthal 2012\n")
     
     p_l_taus = [0.02, 0.25, 0.5, 0.75, 1]
@@ -27,9 +27,9 @@ def replicate_posen_levinthal(N_bandits = 10, N_experiments = 500, N_episodes = 
         ])
     
     for i in range(len(p_l_taus)):
-        (reward_m, tau_m, knowledge_m, exploration_m) = perform_experiments(N_bandits=N_bandits, N_experiments=N_experiments, N_episodes=N_episodes, tau=p_l_taus[i]/N_bandits)
+        (reward_m, tau_m, knowledge_m, exploration_m) = perform_experiments(N_bandits=N_bandits, N_experiments=N_experiments, N_periods=N_periods, tau=p_l_taus[i]/N_bandits)
         
-        exploration_prob= np.count_nonzero(exploration_m, axis=1)/N_episodes
+        exploration_prob= np.count_nonzero(exploration_m, axis=1)/N_periods
         p_l_results[1,i] = np.mean(exploration_prob)
         
         rewards_cum=np.cumsum(reward_m,axis=1)

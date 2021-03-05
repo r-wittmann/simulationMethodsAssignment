@@ -15,8 +15,8 @@ First, all methods are defined that are later used in the experiment loop
 itself, including softmax choosing method and the method to update ones 
 believs.
 
-One experiment is defined as a game of N_episodes with certain pre-set 
-characteristics (e.g. number of episodes, tau and shock probability) 
+One experiment is defined as a game of N_periods with certain pre-set 
+characteristics (e.g. number of periods, tau and shock probability) 
 
 This script is designed to be called from either the console or other files, 
 methods and parameters are commented below.
@@ -49,7 +49,7 @@ def get_success(action, bandit_probs):
 def get_reward(success):
     return 1 if (success == 1) else -1
 
-# updates the believes of the agend based on the payout of the current episode
+# updates the believes of the agend based on the payout of the current period
 # parameters:
 #    k: number of actions previously performed, list of ints
 #    Q: current believes of payout probabilities, list of floats
@@ -76,7 +76,7 @@ def calculate_knowledge(Q, bandit_probs):
 #    action_history: list of actions performed, list of ints
 #    action: the previously chosen action, int
 def calculate_exploration(action_history, action):
-    if (len(action_history) == 0): # this is only true in the first episode
+    if (len(action_history) == 0): # this is only true in the first period
         return 1
     else:
         return 0 if (action_history[-1] == action) else 1
@@ -109,13 +109,13 @@ def choose_softmax(Q, tau, N_bandits):
 # parameters:
 #    tau_0: the initial tau parameter, float
 #    tau_strategy: the chosen strategy to update tau, string
-#    N_episodes: number of episodes per experiment, int
-#    reward_history: history of payouts from previous episods, list of -1 and 1
-def update_tau(tau_0, tau_strategy, N_episodes, reward_history):
+#    N_periods: number of periods per experiment, int
+#    reward_history: history of payouts from previous periods, list of -1 and 1
+def update_tau(tau_0, tau_strategy, N_periods, reward_history):
     if tau_strategy == "stable":
         return tau_0
     elif tau_strategy == "accumulated resources":
-        return tau_0+(1/(N_episodes)**2)*(np.sum(reward_history)**2)
+        return tau_0+(1/(N_periods)**2)*(np.sum(reward_history)**2)
     else:
         # defaults to returning tau
         return tau_0
@@ -124,14 +124,14 @@ def update_tau(tau_0, tau_strategy, N_episodes, reward_history):
 # Define an experiment
 # =========================
 
-# an experiment is a repitition of actions for N_episods
+# an experiment is a repitition of actions for N_periods
 # parameters:
 #    N_bandits: the number of bandits, int
-#    N_episodes: number of episodes per experiment, int
+#    N_periods: number of periods per experiment, int
 #    tau: the tau parameter, float
 #    shock_prob: probability of a shock to the environment, float
 #    tau_strategy: the chosen strategy to update tau, string
-def experiment(N_bandits, N_episodes, tau, shock_prob, tau_strategy):
+def experiment(N_bandits, N_periods, tau, shock_prob, tau_strategy):
     # create empty arrays to append elements to
     action_history = np.array([])
     reward_history = np.array([])
@@ -146,13 +146,13 @@ def experiment(N_bandits, N_episodes, tau, shock_prob, tau_strategy):
     # assign random bandit payout probabilities
     bandit_probs = assign_bandit_probabilities(N_bandits)
     
-    for episode in range(N_episodes):
+    for period in range(N_periods):
         # check for environmental shock
         if np.random.random() < shock_prob and np.random.random()<0.5:
             bandit_probs = assign_bandit_probabilities(N_bandits)
         
         # calculate and update tau
-        tau = update_tau(tau_0, tau_strategy, N_episodes, reward_history)
+        tau = update_tau(tau_0, tau_strategy, N_periods, reward_history)
         
         # Choose action from agent (based on current believes)
         action = choose_softmax(Q, tau, N_bandits)
@@ -179,28 +179,28 @@ def experiment(N_bandits, N_episodes, tau, shock_prob, tau_strategy):
     return (action_history, reward_history, tau_history, knowledge_history, exploration_history)
 
 
-# an experiment is a repitition of actions for N_episods
+# an experiment is a repitition of actions for N_periods
 # parameters:
 #    N_bandits: the number of bandits, int
 #    N_experiments: the number of experiments, int
-#    N_episodes: number of episodes per experiment, int
+#    N_periods: number of periods per experiment, int
 #    tau: the tau parameter, float
 #    shock_prob: probability of a shock to the environment, float, default = 0
 #    tau_strategy: the chosen strategy to update tau, string, default = "stable"
-def perform_experiments(N_bandits, N_experiments, N_episodes, tau, shock_prob=0, tau_strategy="stable"):
-    print("Running multi-armed bandits with {} bandits in {} experiments with {} episodes.".format(N_bandits, N_experiments, N_episodes))
+def perform_experiments(N_bandits, N_experiments, N_periods, tau, shock_prob=0, tau_strategy="stable"):
+    print("Running multi-armed bandits with {} bandits in {} experiments with {} periods.".format(N_bandits, N_experiments, N_periods))
     print("Environment shock probability is set to {}, tau to {} and tau strategy is \"{}\".".format(shock_prob, tau, tau_strategy))
     print("")
     
     # create empty matrices to store our history in
-    reward_m      = np.zeros((N_experiments, N_episodes))
-    tau_m         = np.zeros((N_experiments, N_episodes))
-    knowledge_m   = np.zeros((N_experiments, N_episodes))
-    exploration_m = np.zeros((N_experiments, N_episodes)) 
+    reward_m      = np.zeros((N_experiments, N_periods))
+    tau_m         = np.zeros((N_experiments, N_periods))
+    knowledge_m   = np.zeros((N_experiments, N_periods))
+    exploration_m = np.zeros((N_experiments, N_periods)) 
     
     for i in range(N_experiments):
         #perform experiment
-        (action_h, reward_h, tau_h, knowledge_h, exploration_h) = experiment(N_bandits, N_episodes, tau, shock_prob, tau_strategy)
+        (action_h, reward_h, tau_h, knowledge_h, exploration_h) = experiment(N_bandits, N_periods, tau, shock_prob, tau_strategy)
         
         # print to know at which experiment we currently are
         if (i + 1) % (N_experiments / 10) == 0:
